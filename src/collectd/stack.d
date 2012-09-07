@@ -1,15 +1,19 @@
 
-module util.stack;
+module collectd.stack;
+import collectd.collection;
 
 import std.string;
 import std.conv;
 
-import collectd.collection;
+version (unittest) {
+	import std.stdio;
+}
 
 
-abstract class Stack(T) : Collection!T
+abstract class Stack(T) : AbstractCollection!T
 {
 	alias add push;
+	T remove();
 	alias remove pop;
 }
 
@@ -17,7 +21,6 @@ abstract class Stack(T) : Collection!T
 class LinkedStack(T) : Stack!T
 {
 	private Node* top;
-	private size_t len;
 
 	this() {
 		clear();
@@ -27,24 +30,31 @@ class LinkedStack(T) : Stack!T
 		len = 0;
 		top = null;
 	}
-
-	@property
-	bool isEmpty() { return len == 0; }
-
-	@property
-	size_t size() { return len; }
+	unittest {
+		auto s = new LinkedStack!int();
+		s += 15;
+		s.clear();
+		assert(s.isEmpty, "LinkedStack should be empty");
+		assert(s.length == 0);
+	}
 
 	void add(T item) {
 		Node* n = new Node(item, top);
 		top = n;
 		len++;
 	}
+	unittest {
+		auto s = new LinkedStack!int();
+		s += 15;
+		assert(!s.isEmpty, "LinkedStack is not empty");
+		assert(s.length == 1);
+	}
+
 	void addAll(T[] items ...) {
 		foreach (item; items) {
 			push(item);
 		}
 	}
-	alias add push;
 
 	T remove() {
 		assert(len);
@@ -52,6 +62,18 @@ class LinkedStack(T) : Stack!T
 		top = top.prev;
 		len--;
 		return n.data;
+	}
+	unittest {
+		auto s = new LinkedStack!int();
+		s.push(1);
+		s.push(2);
+		s.push(3);
+		assert(s.pop() == 3);
+		s.push(4);
+		assert(s.pop() == 4);
+		assert(s.pop() == 2);
+		assert(s.pop() == 1);
+		assert(s.isEmpty, "LinkedStack should be empty");
 	}
 
 	bool remove(T item) {
@@ -99,22 +121,14 @@ class LinkedStack(T) : Stack!T
 }
 
 
-
 class ArrayStack(T) : Stack!T
 {
-	T[] data;
-	size_t len;
+	private T[] data;
 
 	this(size_t cap = 8) {
 		data.length = cap;
 		len = 0;
 	}
-
-	@property
-	size_t size() { return len; }
-
-	@property
-	bool isEmpty() { return len == 0; }
 
 	void clear() {
 		len = 0;
@@ -128,7 +142,6 @@ class ArrayStack(T) : Stack!T
 		data[len] = item;
 		len++;
 	}
-	alias add push;
 
 	void addAll(T[] items ...) {
 		foreach (item; items) {
@@ -144,7 +157,6 @@ class ArrayStack(T) : Stack!T
 		len--;
 		return data[len];
 	}
-	alias remove pop;
 
 	bool remove(T item) {
 		throw new Exception("remove: unsupported operation");
@@ -154,15 +166,8 @@ class ArrayStack(T) : Stack!T
 		throw new Exception("removeAll: unsupported operation");
 	}
 
-	override
 	string toString() {
 		return to!string(data[0 .. len]);
-	}
-
-	void opOpAssign(string op)(T item) {
-		static if (op == "+") {
-			push(item);
-		}
 	}
 
 	void opIndexAssign(T item, size_t index) {
@@ -175,7 +180,7 @@ class ArrayStack(T) : Stack!T
 
 	int opApply(int delegate (ref T) d) {
 		int result = 0;
-		foreach (i; 0 .. len) {
+		foreach (i; 0 .. 10) {
 			result = d(data[i]);
 			if (result) return result;
 		}
@@ -189,11 +194,13 @@ version (single)
 	import std.stdio;
 	void main()
 	{
-		auto s = new Stack!int();
+		//auto s = new ArrayStack!int();
+		auto s = new LinkedStack!int();
 
 		foreach (i; 0 .. 10) {
 			s.push(i);
 		}
+		s += 42;
 		writeln(s);
 
 		foreach (item; s) {

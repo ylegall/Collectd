@@ -47,6 +47,7 @@ class RingBuffer(T) : Collection!T
 	@property
 	size_t size() { return len; }
 
+	@property
 	bool isEmpty() { return len == 0; }
 
 	bool contains(T item) {
