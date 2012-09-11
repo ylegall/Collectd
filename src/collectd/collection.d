@@ -13,7 +13,7 @@ interface Collection(T)
 
 	bool remove(T item);
 
-	void removeAll(T[] items ...);
+	//void removeAll(T[] items ...);
 
 	void clear();
 }
@@ -62,6 +62,26 @@ abstract class AbstractCollection(T) : Collection!T
 		} else if (op == "-") {
 			remove(item);
 		}
+	}
+}
+
+mixin template Indexor(T)
+{
+	T opIndexAssign(T value, size_t i) {
+		set(i, value);
+		return value;
+	}
+
+	T opIndex(size_t index) {
+		return get(index);
+	}
+
+	T opIndexOpAssign!(string op)(T value, size_t index)
+	{
+		auto item = get(index);
+		mixin("item " ~ op ~ "= value");
+		set(index, item);
+		return item;
 	}
 }
 
