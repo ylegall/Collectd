@@ -11,7 +11,7 @@ version (unittest) {
 
 interface Set(T) : Collection!T
 {
-
+	bool contains(T item);
 }
 
 //class HashSet(T: immutable(T)) : Set!T
@@ -21,27 +21,22 @@ class HashSet(T) : Set!T
 	enum EXP_FACTOR = 2;
 
 	private {
-		size_t mySize;
 		double loadFactor;
 		Node*[] data;
 	}
 
 	public this(double loadFactor=0.75) {
-		mySize = 0;
+		len = 0;
 		this.loadFactor = loadFactor;
 		data.length = 8;
 	}
 
-	@property
-	public size_t size() {
-		return mySize;
-	}
-
 	public void clear() {
-		mySize = 0;
+		super.clear();
 		data = null;
 		data = new Node*[MIN_SIZE];
 	}
+
 	unittest {
 		Set!int s = new HashSet!int();
 		foreach (i; 0 .. 10) {
@@ -51,10 +46,6 @@ class HashSet(T) : Set!T
 		s.clear();
 		assert(s.isEmpty());
 		writeln(s);
-	}
-
-	bool isEmpty() {
-		return size > 0;
 	}
 
 	// gets the index of the specified item in the array
@@ -70,7 +61,7 @@ class HashSet(T) : Set!T
 		return index;
 	}
 
-	public bool contains(T item) {
+	bool contains(T item) {
 		auto index = getIndex(item);
 		if (data[index] == null || data[index].val != item) {
 			return false;
@@ -103,7 +94,7 @@ class HashSet(T) : Set!T
 		}
 	}
 
-	public bool remove(T item) {
+	bool remove(T item) {
 		auto index = getIndex(item);
 		if (data[index] == null) {
 			return false;
@@ -120,14 +111,6 @@ class HashSet(T) : Set!T
 
 	public void removeAll(T[] items) {
 		foreach (item; items) {
-			remove(item);
-		}
-	}
-
-	public void opOpAssign(string op)(T item) {
-		static if (op == "+") {
-			add(item);
-		} else if (op == "-") {
 			remove(item);
 		}
 	}
@@ -181,5 +164,45 @@ class HashSet(T) : Set!T
 		immutable(T) val;
 		this(T v) {val=v;}
 	}
+}
+
+
+class MultiSet(T) : Set!T
+{
+	private {
+		uint[T] data;
+	}
+
+	void add(T item) {
+		super.add(item);
+		data[item] += 1;
+	}
+
+	bool remove(T item) {
+		if (data[item] > 0) {
+			data[item] -= 1;
+			--len;
+			return true;
+		}
+		return false;
+	}
+
+	bool contains(T item) {
+		if (!item in data)
+			return false;
+		return data[item] > 0;
+	}
+
+	bool remove(T item) {
+		if (item in data) {
+			auto count = data[item] - 1;
+			if (!count) {
+				data.remove(item);
+			}
+			return true;
+		}
+		return false;
+	}
+
 }
 
