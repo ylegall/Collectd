@@ -1,4 +1,3 @@
-
 module collectd.stack;
 import collectd.collection;
 
@@ -189,7 +188,7 @@ class ArrayStack(T) : Stack!T
 }
 
 
-version (single)
+version (stack)
 {
 	import std.stdio;
 	void main()
