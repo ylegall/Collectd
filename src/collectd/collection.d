@@ -27,7 +27,7 @@ abstract class AbstractCollection(T) : Collection!T
 	}
 
 	void add(T item) {
-		len++;
+		++len;
 	}
 
 	bool remove(T item) {
@@ -76,12 +76,18 @@ mixin template Indexor(T)
 		return get(index);
 	}
 
-	T opIndexOpAssign!(string op)(T value, size_t index)
+	T opIndexOpAssign(string op)(T value, size_t index)
 	{
 		auto item = get(index);
 		mixin("item " ~ op ~ "= value");
 		set(index, item);
 		return item;
 	}
+}
+
+
+auto empty_map(K,V)() {
+	V[K] empty;
+	return empty;
 }
 
