@@ -9,9 +9,9 @@ import std.conv;
 import std.stdio;
 
 /**
-An array-based implementation of a ring buffer.
-*/
-class RingBuffer(T) : Collection!T
+ * An array-based implementation of a ring buffer.
+ */
+class RingBuffer(T) : AbstractCollection!T
 {
 	private {
 		size_t len;
@@ -44,12 +44,6 @@ class RingBuffer(T) : Collection!T
 		}
 	}
 
-	@property
-	size_t size() { return len; }
-
-	@property
-	bool isEmpty() { return len == 0; }
-
 	bool contains(T item) {
 		auto i = 0;
 		auto j = head;
@@ -71,7 +65,9 @@ class RingBuffer(T) : Collection!T
 	}
 
 	@property
-	T front() {	return data[getIndex(0)]; }
+	T front() {
+		return data[getIndex(0)];
+	}
 
 	private void popFront() {
 		if (len > 0) {
@@ -106,12 +102,6 @@ class RingBuffer(T) : Collection!T
 		data[getIndex(i)] = value;
 	}
 
-	void addAll(T[] items ...) {
-		foreach (item; items) {
-			append(item);
-		}
-	}
-
 	void add(T item) {
 		head++;
 		head %= data.length;
@@ -120,10 +110,11 @@ class RingBuffer(T) : Collection!T
 			len++;
 		}
 	}
+	alias add append;
 
-	void opOpAssign(string op)(T item) {
-		static if (op == "+") {
-			add(item);
+	void addAll(T[] items ...) {
+		foreach (item; items) {
+			append(item);
 		}
 	}
 
