@@ -4,8 +4,8 @@ module collectd.list;
 import collectd.collection;
 import std.conv;
 
-/*
- *
+/**
+
  */
 abstract class List(T) : AbstractCollection!T
 {
@@ -16,8 +16,8 @@ abstract class List(T) : AbstractCollection!T
 	void set(size_t index, value);
 }
 
-/*
- *
+/**
+ Implements an ArrayList
  */
 class ArrayList(T) : List!T
 {
@@ -25,27 +25,39 @@ class ArrayList(T) : List!T
 	private T[] data;
 
 	override void add(T item) {
-		if (len == data.length) {
-			data.length *= GROWTH_FACTOR;
-		}
+		expand();
 		data[len++] = item;
 	}
 
 	void insert(T item, size_t index) {
-		//TODO
+		expand();
+		for(int i = len; i > index; --i) {
+			data[i] = data[i-1];
+		}
+		data[index] = item;
+		++len;
 	}
 
-	T get(size_t index) {
-		assert(index < len);
+	T get(size_t index) const {
 		return data[index];
+	}
+
+	void set(size_t index, value) {
+		data[index] = value;
+	}
+
+	void expand() {
+		if (len == data.length) {
+			data.length *= GROWTH_FACTOR;
+		}
 	}
 
 	mixin Indexor!(T);
 }
 
 
-/*
- *
+/**
+ Implements a LinkedList
  */
 class LinkedList(T) : List!T
 {
@@ -69,6 +81,7 @@ class LinkedList(T) : List!T
 		}
 	}
 
+	override
 	void insert(T item, size_t index) {
 		auto n = new Node(item, null);
 		auto current = head;
@@ -91,10 +104,9 @@ class LinkedList(T) : List!T
 		throw new Exception("index out of bounds.");
 	}
 
-	T get(size_t index) {
-		if (index >= len) {
-			throw new Exception("index out of bounds.");
-		}
+	override
+	T get(size_t index) const {
+		assert (index < len, "index out of bounds.");
 		Node* current = head;
 		auto count = 0;
 		while (current) {
@@ -105,6 +117,23 @@ class LinkedList(T) : List!T
 			current = current.next;
 		}
 		throw new Exception("index out of bounds.");
+	}
+
+
+	/**
+	 Implements a LinkedList
+	 */
+	override
+	void set(size_t index, T newVal) {
+		Node* current = head;
+		while (index) {
+			if (!current) {
+				throw new Exception("index out of bounds.");
+			}
+			current = current.next;
+			--index;
+		}
+		current.val = newVal;
 	}
 
 	string toString() {

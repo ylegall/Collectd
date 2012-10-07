@@ -5,7 +5,7 @@ import std.conv;
 import collectd.collection;
 
 
-interface Queue(T) : Collection!T
+abstract class Queue(T) : AbstractCollection!T
 {
 	//void add(T item);
 	alias add offer;
@@ -21,40 +21,30 @@ interface Queue(T) : Collection!T
 class ArrayQueue(T) : Queue!T
 {
 	private T[] data;
-	private size_t s;
 
 	this () {
 
 	}
 
-	@property
-	size_t size() {
-		return s;
-	}
-
-	@property
-	bool empty() {
-		return s == 0;
-	}
-
+	override
 	void clear() {
-		s = 0;
+		len = 0;
 		data.length = 0;
 	}
 
+	override
 	void add(T item) {
-		if (s >= data.length) {
+		if (len >= data.length) {
 			data.length = std.algorithm.max(1,data.length);
 			data.length *= 2;
 		}
-		data[s] = item;
-		s++;
+		data[len] = item;
+		len++;
 	}
 
 	T remove() {
-		assert(s);
 		T item = data[0];
-		s--;
+		len--;
 		data = data[1..$];
 		return item;
 	}
@@ -66,13 +56,12 @@ class ArrayQueue(T) : Queue!T
 	}
 
 	T peek() {
-		assert(s);
 		return data[0];
 	}
 
 	int opApply(int delegate(T) d) {
 		int result = 0;
-		for (int i=0; i < s; ++i) {
+		for (int i=0; i < len; ++i) {
 			result = d(data[i]);
 			if (result) return result;
 		}
@@ -86,50 +75,33 @@ class LinkedQueue(T) : Queue!T
 	private {
 		Node* head;
 		Node* tail;
-		size_t s;
 	}
 
 	this() {
 		clear();
 	}
 
+	override
 	void clear() {
-		s = 0;
+		len = 0;
 		head = tail = null;
 	}
 
-	@property
-	size_t size() {
-		return s;
-	}
-
-	bool isEmpty() {
-		return s == 0;
-	}
-
-	void opOpAssign(string op)(T item) {
-		static if (op == "+") {
-			add(item);
-		}
-	}
-
 	T peek() {
-		if (s > 0) {
-			return head.data;
-		} else {
-			throw new Exception("queue is empty.");
-		}
+		assert (len, "queue is empty");
+		return head.data;
 	}
 
+	override
 	void add(T item) {
 		Node* n = new Node(item);
-		if (s == 0) {
+		if (len == 0) {
 			head = tail = n;
 		} else {
 			tail.next = n;
 			tail = tail.next;
 		}
-		s++;
+		len++;
 	}
 	alias add enqueue;
 
@@ -140,17 +112,14 @@ class LinkedQueue(T) : Queue!T
 	}
 
 	public T remove() {
-		if (s > 0) {
-			auto retval = head.data;
-			head = head.next;
-			s--;
-			if (s == 0) {
-				clear();
-			}
-			return retval;
-		} else {
-			throw new Exception("queue is empty.");
+		assert (len, "queue is empty");
+		auto retval = head.data;
+		head = head.next;
+		--len;
+		if (len == 0) {
+			clear();
 		}
+		return retval;
 	}
 
 	bool remove(T item) {
