@@ -1,0 +1,4 @@
+include/
+*.o
+*.a
+.project

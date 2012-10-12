@@ -9,8 +9,8 @@ version(unittest) {
 	import std.stdio;
 }
 
-/*
- * Utility template that provides a growable heap
+/**
+ Utility template that provides a growable heap
  */
 template Heap(T, alias less = "a < b")
 {
@@ -26,9 +26,9 @@ unittest
 	assert(h.front == 7);
 }
 
-/*
- * useful template for associative arrays:
- * update: associative arrays now support the "clear" property.
+/**
+ useful template for associative arrays:
+ update: associative arrays now support the "clear" property.
  */
 template Maps(K,V)
 {
