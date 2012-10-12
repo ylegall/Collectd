@@ -3,16 +3,20 @@ module collectd.bimap;
 
 import collectd.collection;
 
+
 abstract class Bimap(K,V) : AbstractCollection!(Entry!(K,V))
 {
-
+	bool containsKey(K key);
+	bool containsValue(V val);
 }
+
 
 struct Entry(K, V)
 {
 	K key;
 	V val;
 }
+
 
 class HashBimap(K,V) : Bimap!(K,V)
 {
@@ -38,7 +42,7 @@ class HashBimap(K,V) : Bimap!(K,V)
 
 	@property
 	bool isEmpty() {
-		return this.length == 0;
+		return this.len == 0;
 	}
 
 	void add(Entry!(K,V) entry) {
@@ -49,10 +53,12 @@ class HashBimap(K,V) : Bimap!(K,V)
 		map[key] = val;
 		rMap[val] = key;
 	}
+	alias add put;
 
 	V getVal(K key) {
 		return map[key];
 	}
+	alias getVal get;
 
 	K getKey(V val) {
 		return rMap[val];
@@ -77,6 +83,19 @@ class HashBimap(K,V) : Bimap!(K,V)
 		rMap[val].remove();
 		map[k].remove();
 	}
+
+	mixin MapIndexor!(K,V);
+
+}
+
+unittest {
+	auto bm = new HashBimap!(int,int)();
+	bm.add(1,2);
+	bm.add(4,5);
+	assert(bm.containsKey(1));
+	assert(bm.containsValue(2));
+	assert(!bm.containsKey(2));
+	assert(!bm.containsValue(4));
 }
 
 version (bimap) {

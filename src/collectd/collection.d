@@ -85,6 +85,26 @@ mixin template Indexor(T)
 	}
 }
 
+mixin MapIndexor(K,V)
+{
+	V opIndexAssign(V val, K key) {
+		put(key, val);
+		return val;
+	}
+
+	V opIndex(K key) {
+		return get(key);
+	}
+
+	V opIndexOpAssign(string op)(V value, K key)
+	{
+		auto item = get(key);
+		mixin("item " ~ op ~ "= value");
+		put(key, item);
+		return item;
+	}
+}
+
 
 auto empty_map(K,V)() {
 	V[K] empty;
