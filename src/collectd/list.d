@@ -1,4 +1,3 @@
-
 module collectd.list;
 
 import collectd.collection;
@@ -159,7 +158,7 @@ class LinkedList(T) : List!T
 	}
 }
 
-version (single)
+version (list)
 {
 	import std.stdio;
 
